@@ -4,12 +4,17 @@ Crawls React/Angular/Vue apps, extracts forms, inputs, buttons, links, query par
 Returns structured endpoint map: [{endpoint, method, parameters}]
 """
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+
 from urllib.parse import urljoin, urlparse, parse_qs
 import time
 import logging
@@ -238,6 +243,17 @@ def crawl_site(url, max_depth=3, max_pages=50):
             - total_links: int
             - pages_crawled: int
     """
+    if not SELENIUM_AVAILABLE:
+        logger.warning("Selenium not available — returning fallback endpoint")
+        return {
+            "endpoints": [{"endpoint": url, "method": "GET", "parameters": [], "source_page": url, "has_csrf_token": False}],
+            "links": [url],
+            "cookies": [],
+            "total_forms": 0,
+            "total_links": 1,
+            "pages_crawled": 0,
+        }
+
     driver = None
     all_endpoints = []
     all_links = set()
