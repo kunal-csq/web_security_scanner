@@ -1,0 +1,35 @@
+@import 'tailwindcss' source(none);
+@source '../**/*.{js,ts,jsx,tsx}';
+
+@import 'tw-animate-css';
+
+@theme inline {
+    --color-cyber-dark: #0B0B0F;
+    --color-cyber-surface: #12121A;
+    --color-cyber-card: #181826;
+    --color-cyber-card-hover: #1E1E30;
+    --color-cyber-purple: #8B5CF6;
+    --color-cyber-glow: #A78BFA;
+    --color-cyber-neon: #C084FC;
+    --color-cyber-border: rgba(139, 92, 246, 0.2);
+    --color-cyber-border-bright: rgba(139, 92, 246, 0.4);
+    --color-cyber-text: #E2E8F0;
+    --color-cyber-text-dim: #94A3B8;
+    --color-cyber-text-muted: #64748B;
+    --color-cyber-success: #10B981;
+    --color-cyber-warning: #F59E0B;
+    --color-cyber-danger: #EF4444;
+    --color-cyber-critical: #DC2626;
+    --color-cyber-high: #8B5CF6;
+    --color-cyber-medium: #A78BFA;
+    --color-cyber-low: #818CF8;
+    --color-cyber-info: #6366F1;
+
+    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+    --shadow-glow-lg: 0 0 40px rgba(139, 92, 246, 0.4);
+    --shadow-glow-sm: 0 0 10px rgba(139, 92, 246, 0.2);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 8px 32px rgba(139, 92, 246, 0.2);
+
+    --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
