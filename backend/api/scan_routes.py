@@ -1,18 +1,52 @@
 """
 DAST Scan API Routes
 Uses AsyncScanEngine for concurrent scanning + StressScanner for load testing.
+Now includes JWT-based access control and scan history saving.
 """
 
+import json
+import logging
 from flask import Blueprint, request, jsonify
 from core.async_engine import AsyncScanEngine
 from core.scorer import calculate_score, get_severity_counts, get_grade
 from ai.analysis import generate_ai_analysis
 from scanners.stress_scanner import StressScanner
-import logging
+from api.auth_routes import get_optional_user
+from db import get_db
 
 logger = logging.getLogger(__name__)
 
 scan_bp = Blueprint("scan", __name__, url_prefix="/api")
+
+
+def _save_scan_history(user_id, url, depth, response_data):
+    """Save scan results to history for authenticated users."""
+    try:
+        db = get_db()
+        db.execute(
+            """INSERT INTO scan_history
+               (user_id, url, score, grade, severity_counts, results,
+                ai_analysis, crawl_info, timing, scan_log, depth)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                url,
+                response_data.get("score", 0),
+                response_data.get("grade", "F"),
+                json.dumps(response_data.get("severity_counts", {})),
+                json.dumps(response_data.get("results", [])),
+                json.dumps(response_data.get("ai_analysis", {})),
+                json.dumps(response_data.get("crawl_info", {})),
+                json.dumps(response_data.get("timing", {})),
+                json.dumps(response_data.get("scan_log", [])),
+                depth,
+            ),
+        )
+        db.commit()
+        db.close()
+        logger.info(f"Scan saved to history for user {user_id}")
+    except Exception as e:
+        logger.error(f"Failed to save scan history: {e}")
 
 
 # -----------------------------------------------
@@ -23,16 +57,9 @@ def run_scan():
     """
     Execute a full DAST security scan.
 
-    Request JSON:
-        url: Target URL (required)
-        scans: List of scanner keys (optional, default: all)
-        depth: Scan depth — quick | standard | deep (optional)
-        stress_test: Boolean — include load test (optional)
-
-    Response JSON:
-        url, score, grade, severity_counts, results,
-        ai_analysis, crawl_info, scan_log, timing,
-        stress_test (if requested)
+    Access control:
+        - No token: forced to 'quick' depth, no stress test, no history save
+        - Valid token: any depth, stress test allowed, results saved to history
     """
     data = request.get_json()
 
@@ -46,6 +73,15 @@ def run_scan():
 
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
+
+    # ---- Access control ----
+    user = get_optional_user()
+    is_authenticated = user is not None
+
+    if not is_authenticated:
+        # Guests: quick scan only, no stress test
+        depth = "quick"
+        run_stress = False
 
     if depth not in ["quick", "standard", "deep"]:
         depth = "standard"
@@ -80,18 +116,26 @@ def run_scan():
             "crawl_info": crawl_info,
             "scan_log": scan_log,
             "timing": timing,
+            "authenticated": is_authenticated,
+            "depth_used": depth,
         }
 
         # ----------------------------------------
-        # Optional stress test
+        # Optional stress test (authenticated only)
         # ----------------------------------------
-        if run_stress:
+        if run_stress and is_authenticated:
             stress = StressScanner(
                 max_concurrent=10,
                 max_requests=50,
             )
             stress_results = stress.run(url)
             response["stress_test"] = stress_results
+
+        # ----------------------------------------
+        # Save to history (authenticated only)
+        # ----------------------------------------
+        if is_authenticated:
+            _save_scan_history(user["user_id"], url, depth, response)
 
         return jsonify(response)
 
@@ -120,14 +164,6 @@ def run_scan():
 # -----------------------------------------------
 @scan_bp.route("/stress-test", methods=["POST"])
 def run_stress_test():
-    """
-    Run a standalone controlled load test.
-
-    Request JSON:
-        url: Target URL (required)
-        concurrent: Max concurrent threads (optional, default: 10, max: 20)
-        requests: Total requests (optional, default: 50, max: 100)
-    """
     data = request.get_json()
     url = data.get("url")
 
@@ -161,7 +197,8 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "service": "WebGuard DAST Engine",
-        "version": "2.1.0",
+        "version": "2.2.0",
+        "features": ["auth", "history", "access_control"],
         "scanners": ["sqli", "xss", "csrf", "auth", "ssl", "headers", "stress_test"],
     })
 

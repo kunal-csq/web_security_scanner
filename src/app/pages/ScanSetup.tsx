@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Shield, CheckCircle2, Loader2, Zap, Scan, Radar, ShieldCheck, Lock, Globe, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { isLoggedIn } from '../../config/auth';
 
 const vulnerabilities = [
   { id: 'sqli', name: 'SQL Injection', icon: '💉' },
@@ -47,11 +48,12 @@ const featureCards = [
 
 export function ScanSetup() {
   const navigate = useNavigate();
+  const loggedIn = isLoggedIn();
   const [targetUrl, setTargetUrl] = useState('');
   const [selectedVulnerabilities, setSelectedVulnerabilities] = useState<string[]>(
     vulnerabilities.map(v => v.id)
   );
-  const [scanProfile, setScanProfile] = useState('standard');
+  const [scanProfile, setScanProfile] = useState(loggedIn ? 'standard' : 'quick');
   const [authorized, setAuthorized] = useState(false);
   const [stressTest, setStressTest] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -88,6 +90,19 @@ export function ScanSetup() {
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyber-neon/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center min-h-screen py-12 px-6">
+
+        {/* Guest banner */}
+        {!loggedIn && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-[600px] mb-4 px-4 py-3 rounded-xl bg-cyber-purple/8 border border-cyber-purple/20 flex items-center justify-between"
+          >
+            <span className="text-[13px] text-cyber-text-dim">
+              🔒 <Link to="/login" className="text-cyber-purple hover:text-cyber-glow font-medium">Login</Link> to unlock all scan depths & save history
+            </span>
+          </motion.div>
+        )}
 
         {/* ============================== */}
         {/* HERO SECTION */}
@@ -216,17 +231,25 @@ export function ScanSetup() {
                 {scanProfiles.map(profile => {
                   const Icon = profile.icon;
                   const isActive = scanProfile === profile.id;
+                  const isLocked = !loggedIn && profile.id !== 'quick';
                   return (
                     <motion.button
                       key={profile.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setScanProfile(profile.id)}
-                      className={`flex-1 p-3.5 rounded-xl border transition-all duration-300 ${isActive
-                          ? 'border-cyber-purple/50 bg-cyber-purple/10 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-                          : 'border-cyber-border bg-cyber-surface hover:border-cyber-border-bright'
+                      whileHover={isLocked ? {} : { scale: 1.02 }}
+                      whileTap={isLocked ? {} : { scale: 0.98 }}
+                      onClick={() => !isLocked && setScanProfile(profile.id)}
+                      className={`flex-1 p-3.5 rounded-xl border transition-all duration-300 relative ${isLocked
+                          ? 'border-cyber-border bg-cyber-surface/50 opacity-50 cursor-not-allowed'
+                          : isActive
+                            ? 'border-cyber-purple/50 bg-cyber-purple/10 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+                            : 'border-cyber-border bg-cyber-surface hover:border-cyber-border-bright'
                         }`}
                     >
+                      {isLocked && (
+                        <div className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-cyber-purple/20 border border-cyber-purple/30 rounded text-[8px] text-cyber-glow font-bold">
+                          PRO
+                        </div>
+                      )}
                       <Icon className={`w-5 h-5 mb-1.5 mx-auto ${isActive ? 'text-cyber-purple' : 'text-cyber-text-muted'}`} />
                       <div className={`text-[13px] font-semibold ${isActive ? 'text-white' : 'text-cyber-text-dim'}`}>
                         {profile.name}
@@ -256,8 +279,8 @@ export function ScanSetup() {
                   </div>
                 </div>
                 <div
-                  onClick={() => setStressTest(!stressTest)}
-                  className={`w-11 h-6 rounded-full relative transition-all duration-300 cursor-pointer ${stressTest ? 'bg-cyber-purple' : 'bg-cyber-card'
+                  onClick={() => loggedIn && setStressTest(!stressTest)}
+                  className={`w-11 h-6 rounded-full relative transition-all duration-300 ${loggedIn ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'} ${stressTest && loggedIn ? 'bg-cyber-purple' : 'bg-cyber-card'
                     }`}
                 >
                   <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all duration-300 ${stressTest ? 'left-5.5' : 'left-0.5'

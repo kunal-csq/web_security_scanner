@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Loader2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API from '../../config/api';
+import { authHeader } from '../../config/auth';
 
 const scanSteps = [
   { id: 'crawl', name: 'Crawling endpoints', detail: 'Discovering forms, links, and parameters...' },
@@ -107,7 +108,7 @@ export function ScanProgress() {
         // ---- THE ACTUAL BACKEND CALL ----
         const response = await fetch(API.scan, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...authHeader() },
           body: JSON.stringify({
             url: targetUrl,
             scans: selectedVulnerabilities,
