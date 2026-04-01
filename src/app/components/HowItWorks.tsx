@@ -5,37 +5,36 @@ const steps = [
     {
         icon: Globe,
         step: '01',
-        title: 'Crawl Endpoints',
-        description: 'Selenium-powered crawler discovers pages, forms, inputs, links, and query parameters across SPAs.',
+        title: 'Enter Target URL',
+        description: 'Provide your website or store URL and choose General DAST or Ecommerce mode.',
     },
     {
         icon: ShieldCheck,
         step: '02',
-        title: 'Run Security Tests',
-        description: 'Seven scanner modules run concurrently — SQLi, XSS, CSRF, Auth, SSL, Headers, and Load Test.',
+        title: 'Select Scan Depth',
+        description: 'Quick, Standard, or Deep — scan modules run concurrently for speed.',
     },
     {
         icon: BarChart3,
         step: '03',
-        title: 'Analyze Risk',
-        description: 'AI-powered analysis with severity scoring, weighted deductions, and context-aware recommendations.',
+        title: 'Get Results',
+        description: 'Each vulnerability is scored by severity with evidence and fix recommendations.',
     },
     {
         icon: FileText,
         step: '04',
-        title: 'Generate Report',
-        description: 'Complete security report with evidence, fix priorities, severity distribution, and stability metrics.',
+        title: 'AI Analysis',
+        description: 'AI generates a risk summary, priority actions, and security grade for your target.',
     },
 ];
 
 export function HowItWorks() {
     return (
-        <section id="how-it-works" className="relative py-28 bg-cyber-surface/30">
+        <section id="how-it-works" className="relative py-24 bg-cyber-surface/30">
             <div className="absolute inset-0 cyber-grid-bg opacity-50" />
 
             <div className="relative z-10 max-w-[1320px] mx-auto px-6">
 
-                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -53,9 +52,7 @@ export function HowItWorks() {
                     </h2>
                 </motion.div>
 
-                {/* Step cards with connecting line */}
                 <div className="relative">
-                    {/* Connecting line (desktop) */}
                     <div className="hidden lg:block absolute top-[60px] left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-cyber-purple/30 via-cyber-glow/20 to-cyber-neon/30" />
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -68,7 +65,6 @@ export function HowItWorks() {
                                 transition={{ delay: i * 0.15, duration: 0.5 }}
                                 className="relative text-center"
                             >
-                                {/* Step circle */}
                                 <div className="relative inline-flex items-center justify-center mb-6">
                                     <motion.div
                                         whileHover={{ boxShadow: '0 0 30px rgba(139,92,246,0.3)' }}

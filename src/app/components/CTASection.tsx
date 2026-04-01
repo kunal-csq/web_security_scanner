@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Shield, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function CTASection() {
@@ -7,8 +7,7 @@ export function CTASection() {
 
     return (
         <section className="relative py-24 overflow-hidden">
-            {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyber-purple/15 via-cyber-dark to-cyber-neon/10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-cyber-purple/15 via-cyber-dark to-amber-500/8" />
             <div className="absolute inset-0 cyber-grid-bg" />
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-cyber-purple/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -20,23 +19,37 @@ export function CTASection() {
                     transition={{ duration: 0.6 }}
                 >
                     <h2 className="text-[36px] lg:text-[44px] font-extrabold text-white tracking-tight mb-5 leading-tight">
-                        Secure Your Application{' '}
+                        Start Scanning{' '}
                         <span className="bg-gradient-to-r from-cyber-purple to-cyber-neon bg-clip-text text-transparent">Today</span>
                     </h2>
 
                     <p className="text-[16px] text-cyber-text-dim leading-relaxed mb-10 max-w-[480px] mx-auto">
-                        Start scanning in seconds. No installation required. Get actionable security insights with AI-powered analysis.
+                        No installation. No setup. Pick a mode, enter a URL, and get actionable security insights in seconds.
                     </p>
 
-                    <motion.button
-                        whileHover={{ scale: 1.03, boxShadow: '0 0 50px rgba(139,92,246,0.5)' }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => navigate('/scan')}
-                        className="inline-flex items-center gap-2.5 px-8 py-4 text-[16px] font-bold text-white bg-gradient-to-r from-cyber-purple to-cyber-neon rounded-xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all duration-300"
-                    >
-                        Start Free Scan
-                        <ArrowRight className="w-5 h-5" />
-                    </motion.button>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <motion.button
+                            whileHover={{ scale: 1.03, boxShadow: '0 0 50px rgba(139,92,246,0.5)' }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => navigate('/scan')}
+                            className="inline-flex items-center gap-2.5 px-8 py-4 text-[15px] font-bold text-white bg-gradient-to-r from-cyber-purple to-cyber-neon rounded-xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all duration-300"
+                        >
+                            <Shield className="w-5 h-5" />
+                            DAST Scan
+                            <ArrowRight className="w-4 h-4" />
+                        </motion.button>
+
+                        <motion.button
+                            whileHover={{ scale: 1.03, boxShadow: '0 0 50px rgba(245,158,11,0.5)' }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => navigate('/scan')}
+                            className="inline-flex items-center gap-2.5 px-8 py-4 text-[15px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-300"
+                        >
+                            <ShoppingCart className="w-5 h-5" />
+                            Ecommerce Scan
+                            <ArrowRight className="w-4 h-4" />
+                        </motion.button>
+                    </div>
                 </motion.div>
             </div>
         </section>
