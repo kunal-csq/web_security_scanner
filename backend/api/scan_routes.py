@@ -8,6 +8,7 @@ import json
 import logging
 from flask import Blueprint, request, jsonify
 from core.async_engine import AsyncScanEngine
+from scanners.ecom_scanner import EcomScanner
 from core.scorer import calculate_score, get_severity_counts, get_grade
 from ai.analysis import generate_ai_analysis
 from scanners.stress_scanner import StressScanner
@@ -67,6 +68,7 @@ def run_scan():
     scans = data.get("scans", [])
     depth = data.get("depth", "standard")
     run_stress = data.get("stress_test", False)
+    scan_mode = data.get("scan_mode", "general")  # "general" or "ecommerce"
 
     if not url:
         return jsonify({"error": "URL is required"}), 400
@@ -88,10 +90,20 @@ def run_scan():
 
     try:
         # ----------------------------------------
-        # Run async scan engine
+        # Run scan engine based on mode
         # ----------------------------------------
-        engine = AsyncScanEngine(depth=depth)
-        scan_data = engine.run(url, scans=scans)
+        if scan_mode == "ecommerce":
+            ecom = EcomScanner(timeout=8)
+            ecom_results = ecom.scan(url)
+            scan_data = {
+                "results": ecom_results,
+                "crawl_info": {"scan_mode": "ecommerce", "checks_run": 8},
+                "scan_log": [{"phase": "ECOM", "message": f"Ecommerce scan complete: {len(ecom_results)} issues"}],
+                "timing": {},
+            }
+        else:
+            engine = AsyncScanEngine(depth=depth)
+            scan_data = engine.run(url, scans=scans)
 
         results = scan_data.get("results", [])
         crawl_info = scan_data.get("crawl_info", {})

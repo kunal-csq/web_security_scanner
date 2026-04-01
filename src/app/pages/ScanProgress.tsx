@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import API from '../../config/api';
 import { authHeader } from '../../config/auth';
 
-const scanSteps = [
+const generalSteps = [
   { id: 'crawl', name: 'Crawling endpoints', detail: 'Discovering forms, links, and parameters...' },
   { id: 'headers', name: 'Testing Headers & SSL', detail: 'Checking CSP, HSTS, TLS, certificates...' },
   { id: 'xss', name: 'Testing XSS', detail: 'Injecting reflected and DOM-based payloads...' },
@@ -13,12 +13,25 @@ const scanSteps = [
   { id: 'report', name: 'Generating Report', detail: 'AI analysis and score calculation...' },
 ];
 
+const ecomSteps = [
+  { id: 'auth', name: 'Checking Auth & Access', detail: 'Testing login, admin panels, IDOR...' },
+  { id: 'session', name: 'Analyzing Sessions', detail: 'Checking cookies, session flags, cache...' },
+  { id: 'ecom', name: 'Ecommerce Logic Tests', detail: 'Price fields, cart tampering, coupons...' },
+  { id: 'exposure', name: 'Scanning Data Exposure', detail: 'Probing .env, .git, API keys, backups...' },
+  { id: 'report', name: 'Generating Report', detail: 'AI analysis and score calculation...' },
+];
+
 export function ScanProgress() {
   const navigate = useNavigate();
+  const config = sessionStorage.getItem('scanConfig');
+  const parsedConfig = config ? JSON.parse(config) : {};
+  const isEcom = parsedConfig.scanMode === 'ecommerce';
+  const scanSteps = isEcom ? ecomSteps : generalSteps;
+
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
-  const [currentDetail, setCurrentDetail] = useState('Initializing DAST engine...');
-  const [logEntries, setLogEntries] = useState<string[]>(['[INIT] WebGuard DAST Engine v2.1 starting...']);
+  const [currentDetail, setCurrentDetail] = useState(isEcom ? 'Initializing Ecommerce Scanner...' : 'Initializing DAST engine...');
+  const [logEntries, setLogEntries] = useState<string[]>([isEcom ? '[INIT] WebGuard Ecommerce Scanner starting...' : '[INIT] WebGuard DAST Engine v2.1 starting...']);
   const [scanComplete, setScanComplete] = useState(false);
   const [scanError, setScanError] = useState(false);
 
@@ -48,7 +61,7 @@ export function ScanProgress() {
       return;
     }
 
-    const { targetUrl, selectedVulnerabilities, scanProfile, stressTest } = JSON.parse(config);
+    const { targetUrl, selectedVulnerabilities, scanProfile, stressTest, scanMode } = JSON.parse(config);
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -114,6 +127,7 @@ export function ScanProgress() {
             scans: selectedVulnerabilities,
             depth: scanProfile,
             stress_test: stressTest || false,
+            scan_mode: scanMode || 'general',
           }),
           signal: controller.signal,
         });
