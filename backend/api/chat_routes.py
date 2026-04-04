@@ -16,7 +16,7 @@ chat_bp = Blueprint("chat", __name__, url_prefix="/api")
 _client = None
 _init_error = None
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCVVpKGWb3hT-zqKzYJ4Qf8tgWBfp6R2YQ")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 def get_client():
     """Lazy-init the Gemini client. Returns (client, error_string)."""
@@ -25,6 +25,12 @@ def get_client():
         return _client, None
     if _init_error is not None:
         return None, _init_error
+
+    if not GEMINI_API_KEY:
+        _init_error = "GEMINI_API_KEY not set in environment variables"
+        logger.error(f"[CHAT] {_init_error}")
+        return None, _init_error
+
     try:
         from google import genai
         _client = genai.Client(api_key=GEMINI_API_KEY)
