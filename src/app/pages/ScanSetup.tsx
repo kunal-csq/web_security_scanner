@@ -289,8 +289,8 @@ export function ScanSetup() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="w-full max-w-[560px]"
         >
-          <div className={`glass-card rounded-2xl p-7 border ${
-            scanMode === 'ecommerce' ? 'border-amber-500/15' : 'border-cyber-purple/15'
+          <div className={`glass-card-strong rounded-2xl p-7 border ${
+            scanMode === 'ecommerce' ? 'border-amber-500/10' : 'border-white/[0.06]'
           }`}>
 
             {/* Target URL */}

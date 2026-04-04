@@ -61,7 +61,7 @@ export function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="glass-card rounded-2xl p-8 border border-cyber-purple/15">
+        <div className="glass-card-strong rounded-2xl p-8 border border-white/[0.06]">
           <h1 className="text-[24px] font-bold text-white text-center mb-1">Welcome Back</h1>
           <p className="text-[14px] text-cyber-text-muted text-center mb-7">Sign in to your account</p>
 

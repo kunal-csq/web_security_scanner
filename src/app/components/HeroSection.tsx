@@ -97,7 +97,7 @@ export function HeroSection() {
                         {/* DAST Card */}
                         <motion.div
                             whileHover={{ borderColor: 'rgba(139,92,246,0.4)', y: -3 }}
-                            className="glass-card rounded-2xl p-5 border border-cyber-purple/20 transition-all duration-300 cursor-pointer"
+                            className="glass-card-strong rounded-2xl p-5 border border-cyber-purple/15 transition-all duration-300 cursor-pointer hover:shadow-[0_0_30px_rgba(139,92,246,0.08)]"
                             onClick={() => navigate('/scan')}
                         >
                             <div className="flex items-center gap-3 mb-3">
@@ -121,7 +121,7 @@ export function HeroSection() {
                         {/* Ecommerce Card */}
                         <motion.div
                             whileHover={{ borderColor: 'rgba(245,158,11,0.4)', y: -3 }}
-                            className="glass-card rounded-2xl p-5 border border-amber-500/20 transition-all duration-300 cursor-pointer"
+                            className="glass-card-strong rounded-2xl p-5 border border-amber-500/15 transition-all duration-300 cursor-pointer hover:shadow-[0_0_30px_rgba(245,158,11,0.08)]"
                             onClick={() => navigate('/scan')}
                         >
                             <div className="flex items-center gap-3 mb-3">

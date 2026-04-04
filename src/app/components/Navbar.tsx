@@ -25,7 +25,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-cyber-dark/70 backdrop-blur-xl border-b border-cyber-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-cyber-dark/60 backdrop-blur-2xl border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
       <div className="max-w-[1320px] mx-auto px-6 h-[72px] flex items-center justify-between">
 
         {/* Logo */}

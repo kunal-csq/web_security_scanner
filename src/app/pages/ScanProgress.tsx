@@ -255,7 +255,7 @@ export function ScanProgress() {
           transition={{ duration: 0.6 }}
           className="w-full max-w-[600px]"
         >
-          <div className="glass-card rounded-2xl p-8 shadow-[var(--shadow-card)]">
+          <div className="glass-card-strong rounded-2xl p-8 shadow-[var(--shadow-card)]">
 
             {/* Header */}
             <div className="flex flex-col items-center mb-8">
