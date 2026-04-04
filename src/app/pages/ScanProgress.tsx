@@ -57,7 +57,7 @@ export function ScanProgress() {
   useEffect(() => {
     const config = sessionStorage.getItem("scanConfig");
     if (!config) {
-      navigate("/scan");
+      navigate("/scan", { replace: true });
       return;
     }
 
@@ -179,7 +179,7 @@ export function ScanProgress() {
         // Navigate after 800ms for smooth transition
         await sleep(800);
         if (!cancelledRef.current) {
-          navigate("/results");
+          navigate("/results", { replace: true });
         }
 
       } catch (err: any) {
@@ -195,10 +195,10 @@ export function ScanProgress() {
         // Fallback: if we already got results before the error, navigate anyway
         if (resultReadyRef.current && !cancelledRef.current) {
           await sleep(1500);
-          if (!cancelledRef.current) navigate("/results");
+          if (!cancelledRef.current) navigate("/results", { replace: true });
         } else {
           await sleep(3000);
-          if (!cancelledRef.current) navigate("/scan");
+          if (!cancelledRef.current) navigate("/scan", { replace: true });
         }
       }
     }
@@ -210,9 +210,9 @@ export function ScanProgress() {
     const safetyTimeout = setTimeout(() => {
       if (!cancelledRef.current) {
         if (resultReadyRef.current) {
-          navigate("/results");
+          navigate("/results", { replace: true });
         } else {
-          navigate("/scan");
+          navigate("/scan", { replace: true });
         }
       }
     }, 90000);
