@@ -4,6 +4,7 @@ import { FeatureSection } from '../components/FeatureSection';
 import { HowItWorks } from '../components/HowItWorks';
 import { CTASection } from '../components/CTASection';
 import { Footer } from '../components/Footer';
+import { ChatWidget } from '../components/ChatWidget';
 
 export function LandingPage() {
     return (
@@ -17,6 +18,8 @@ export function LandingPage() {
                 <CTASection />
                 <Footer />
             </div>
+
+            <ChatWidget />
         </div>
     );
 }

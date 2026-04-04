@@ -18,6 +18,9 @@ export const API = {
   // History
   history: `${API_BASE_URL}/api/history`,
   historyDetail: (id: number) => `${API_BASE_URL}/api/history/${id}`,
+
+  // Chat
+  chat: `${API_BASE_URL}/api/chat`,
 };
 
 export default API;
