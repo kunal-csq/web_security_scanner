@@ -7,15 +7,34 @@ Restricted to web app and ecommerce security topics only.
 import os
 import logging
 from flask import Blueprint, request, jsonify
-from google import genai
 
 logger = logging.getLogger(__name__)
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/api")
 
-# Gemini client
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCVVpKGWb3hT-zqKzYJ4Qf8tgWBfp6R2YQ")
-client = genai.Client(api_key=API_KEY)
+# Lazy-initialized Gemini client (avoids crash at import time)
+_client = None
+_init_error = None
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCVVpKGWb3hT-zqKzYJ4Qf8tgWBfp6R2YQ")
+
+def get_client():
+    """Lazy-init the Gemini client. Returns (client, error_string)."""
+    global _client, _init_error
+    if _client is not None:
+        return _client, None
+    if _init_error is not None:
+        return None, _init_error
+    try:
+        from google import genai
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+        logger.info("[CHAT] Gemini client initialized successfully")
+        return _client, None
+    except Exception as e:
+        _init_error = str(e)
+        logger.error(f"[CHAT] Failed to init Gemini: {e}")
+        return None, _init_error
+
 
 SYSTEM_PROMPT = """You are WebGuard AI — an advanced cybersecurity assistant specializing in web application and ecommerce website security.
 
@@ -55,20 +74,26 @@ def chat():
         if len(user_message) > 2000:
             return jsonify({"error": "Message too long (max 2000 chars)"}), 400
 
+        # Get or init the Gemini client
+        client, init_err = get_client()
+        if client is None:
+            logger.error(f"[CHAT] Client unavailable: {init_err}")
+            return jsonify({"error": f"AI engine failed to initialize. Error: {init_err}"}), 500
+
         # Build conversation for Gemini
         contents = []
 
-        # Add system prompt as first user message
+        # System prompt as first exchange
         contents.append({
             "role": "user",
             "parts": [{"text": SYSTEM_PROMPT + "\n\nAcknowledge these instructions and wait for my question."}]
         })
         contents.append({
             "role": "model",
-            "parts": [{"text": "Understood. I'm WebGuard AI, your web application and ecommerce security specialist. I'm ready to help you identify and fix security vulnerabilities. What would you like to know?"}]
+            "parts": [{"text": "Understood. I'm WebGuard AI, ready to help with web and ecommerce security. What's your question?"}]
         })
 
-        # Add conversation history (last 10 messages to stay within context)
+        # Add conversation history (last 10 messages)
         for msg in history[-10:]:
             role = "user" if msg.get("role") == "user" else "model"
             contents.append({
@@ -93,5 +118,5 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        logger.error(f"Chat error: {e}")
-        return jsonify({"error": "AI service temporarily unavailable. Please try again."}), 500
+        logger.error(f"[CHAT] Error: {e}")
+        return jsonify({"error": f"AI error: {str(e)[:200]}"}), 500
