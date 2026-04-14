@@ -341,19 +341,6 @@ web_security_scanner/
 
 ---
 
-## 🌐 Deployment
-
-### Frontend → Netlify
-- Auto-deploys on push to `main`
-- Build: `npm run build` → Output: `dist/`
-- SPA routing configured in `netlify.toml`
-
-### Backend → Render
-- Auto-deploys on push to `main`
-- Procfile: `web: gunicorn app:app`
-- Environment variables set in Render dashboard
-
----
 
 ## ⚠️ Security Disclaimer
 
