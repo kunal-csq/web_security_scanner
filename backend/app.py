@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from api.scan_routes import scan_bp
 from api.auth_routes import auth_bp
 from api.history_routes import history_bp
-from api.chat_routes import chat_bp
 from db import init_db
 
 load_dotenv()
@@ -28,7 +27,6 @@ init_db()
 app.register_blueprint(scan_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(history_bp)
-app.register_blueprint(chat_bp)
 
 
 @app.route("/")

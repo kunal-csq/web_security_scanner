@@ -5,5 +5,5 @@ requests
 cryptography
 beautifulsoup4
 lxml
-google-genai
+google-generativeai
 PyJWT

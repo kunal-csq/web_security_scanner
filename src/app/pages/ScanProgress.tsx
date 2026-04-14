@@ -68,15 +68,20 @@ export function ScanProgress() {
 
     async function runScan() {
       try {
-        // ---- PHASE 1: Crawling (0% → 10%) ----
+        // ---- PHASE 1: Initial probe (0% → 10%) ----
         setProgress(5);
         setCurrentStep(0);
         setCurrentDetail(scanSteps[0].detail);
-        addLog(`[CRAWL] Starting crawl of ${targetUrl}`);
-        addLog(`[CRAWL] Depth: ${scanProfile}`);
-        addLog('[CRAWL] Extracting forms, links, buttons...');
+        if (isEcom) {
+          addLog(`[ECOM] Starting ecommerce security scan of ${targetUrl}`);
+          addLog('[ECOM] Probing authentication & access control...');
+          addLog('[ECOM] Checking admin panels, login forms...');
+        } else {
+          addLog(`[CRAWL] Starting crawl of ${targetUrl}`);
+          addLog(`[CRAWL] Depth: ${scanProfile}`);
+          addLog('[CRAWL] Extracting forms, links, buttons...');
+        }
 
-        // Simulate brief crawl visual (non-blocking, just a tiny delay for UX)
         await sleep(300);
         if (cancelledRef.current) return;
 
@@ -85,33 +90,40 @@ export function ScanProgress() {
         // ---- PHASE 2: Send scan request (10% → 70%) ----
         setCurrentStep(1);
         setCurrentDetail('Sending scan request to backend...');
-        addLog('[SCAN] Headers scanner started');
-        addLog('[SCAN] SSL/TLS scanner started');
+        if (isEcom) {
+          addLog('[ECOM] Session & cookie analyzer started');
+          addLog('[ECOM] Checking Set-Cookie flags...');
+        } else {
+          addLog('[SCAN] Headers scanner started');
+          addLog('[SCAN] SSL/TLS scanner started');
+        }
 
-        // Start a slow progress ticker while waiting for backend
-        // This one is safe — it just ticks from 10→70 slowly while fetch runs
         const tickInterval = setInterval(() => {
           if (cancelledRef.current) { clearInterval(tickInterval); return; }
           setProgress(prev => {
-            if (prev >= 70) return 70; // cap at 70 during fetch
+            if (prev >= 70) return 70;
             return prev + 1;
           });
         }, 800);
 
         // Step advancement during the wait
+        const ecomStepLogs: Record<number, string[]> = {
+          2: ['[ECOM] Ecommerce logic scanner started', '[ECOM] Checking price fields, cart inputs, coupons...'],
+          3: ['[ECOM] Data exposure scanner started', '[ECOM] Probing .env, .git, API keys, backups...'],
+        };
+        const dastStepLogs: Record<number, string[]> = {
+          2: ['[SCAN] XSS scanner started', '[SCAN] Testing reflected payloads...'],
+          3: ['[SCAN] SQLi scanner started', '[SCAN] Testing error-based injection...'],
+        };
+        const activeStepLogs = isEcom ? ecomStepLogs : dastStepLogs;
+
         const stepAdvance = setInterval(() => {
           if (cancelledRef.current) { clearInterval(stepAdvance); return; }
           setCurrentStep(prev => {
             const next = prev + 1;
-            if (next < scanSteps.length - 1) { // Don't go past step 4 (report) yet
+            if (next < scanSteps.length - 1) {
               setCurrentDetail(scanSteps[next].detail);
-
-              const stepLogs: Record<number, string[]> = {
-                2: ['[SCAN] XSS scanner started', '[SCAN] Testing reflected payloads...'],
-                3: ['[SCAN] SQLi scanner started', '[SCAN] Testing error-based injection...'],
-              };
-              (stepLogs[next] || []).forEach(msg => addLog(msg));
-
+              (activeStepLogs[next] || []).forEach(msg => addLog(msg));
               return next;
             }
             return prev;

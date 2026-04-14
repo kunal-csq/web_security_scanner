@@ -47,7 +47,7 @@ export function HeroSection() {
                             <motion.button
                                 whileHover={{ boxShadow: '0 0 40px rgba(139,92,246,0.5)', scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => navigate('/scan')}
+                                onClick={() => navigate('/scan?mode=general')}
                                 className="flex items-center gap-2.5 px-7 py-3.5 text-[15px] font-semibold text-white bg-gradient-to-r from-cyber-purple to-cyber-neon rounded-xl shadow-[0_0_25px_rgba(139,92,246,0.35)] transition-all duration-300"
                             >
                                 <Shield className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function HeroSection() {
                             <motion.button
                                 whileHover={{ boxShadow: '0 0 40px rgba(245,158,11,0.5)', scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => navigate('/scan')}
+                                onClick={() => navigate('/scan?mode=ecommerce')}
                                 className="flex items-center gap-2.5 px-7 py-3.5 text-[15px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all duration-300"
                             >
                                 <ShoppingCart className="w-4 h-4" />
@@ -98,7 +98,7 @@ export function HeroSection() {
                         <motion.div
                             whileHover={{ borderColor: 'rgba(139,92,246,0.4)', y: -3 }}
                             className="glass-card-strong rounded-2xl p-5 border border-cyber-purple/15 transition-all duration-300 cursor-pointer hover:shadow-[0_0_30px_rgba(139,92,246,0.08)]"
-                            onClick={() => navigate('/scan')}
+                            onClick={() => navigate('/scan?mode=general')}
                         >
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-10 h-10 rounded-xl bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center">
@@ -122,7 +122,7 @@ export function HeroSection() {
                         <motion.div
                             whileHover={{ borderColor: 'rgba(245,158,11,0.4)', y: -3 }}
                             className="glass-card-strong rounded-2xl p-5 border border-amber-500/15 transition-all duration-300 cursor-pointer hover:shadow-[0_0_30px_rgba(245,158,11,0.08)]"
-                            onClick={() => navigate('/scan')}
+                            onClick={() => navigate('/scan?mode=ecommerce')}
                         >
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">

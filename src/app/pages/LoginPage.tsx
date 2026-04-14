@@ -34,6 +34,7 @@ export function LoginPage() {
 
       setToken(data.token);
       setUser(data.user);
+      setLoading(false);
       navigate('/scan');
     } catch {
       setError('Network error. Please try again.');

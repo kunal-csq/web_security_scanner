@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Shield, CheckCircle2, Loader2, Zap, Scan, Radar, ShieldCheck, Lock, Globe, Activity, ShoppingCart, CreditCard, Package, Users, Database, Bug, Bot, Server } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isLoggedIn } from '../../config/auth';
@@ -85,11 +85,13 @@ type ScanMode = 'general' | 'ecommerce';
 
 export function ScanSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const loggedIn = isLoggedIn();
-  const [scanMode, setScanMode] = useState<ScanMode>('general');
+  const initialMode = searchParams.get('mode') === 'ecommerce' ? 'ecommerce' : 'general';
+  const [scanMode, setScanMode] = useState<ScanMode>(initialMode);
   const [targetUrl, setTargetUrl] = useState('');
   const [selectedModules, setSelectedModules] = useState<string[]>(
-    generalModules.map(v => v.id)
+    (initialMode === 'ecommerce' ? ecomModules : generalModules).map(v => v.id)
   );
   const [scanProfile, setScanProfile] = useState(loggedIn ? 'standard' : 'quick');
   const [authorized, setAuthorized] = useState(false);

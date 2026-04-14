@@ -31,7 +31,7 @@ export function CTASection() {
                         <motion.button
                             whileHover={{ scale: 1.03, boxShadow: '0 0 50px rgba(139,92,246,0.5)' }}
                             whileTap={{ scale: 0.97 }}
-                            onClick={() => navigate('/scan')}
+                            onClick={() => navigate('/scan?mode=general')}
                             className="inline-flex items-center gap-2.5 px-8 py-4 text-[15px] font-bold text-white bg-gradient-to-r from-cyber-purple to-cyber-neon rounded-xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all duration-300"
                         >
                             <Shield className="w-5 h-5" />
@@ -42,7 +42,7 @@ export function CTASection() {
                         <motion.button
                             whileHover={{ scale: 1.03, boxShadow: '0 0 50px rgba(245,158,11,0.5)' }}
                             whileTap={{ scale: 0.97 }}
-                            onClick={() => navigate('/scan')}
+                            onClick={() => navigate('/scan?mode=ecommerce')}
                             className="inline-flex items-center gap-2.5 px-8 py-4 text-[15px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-300"
                         >
                             <ShoppingCart className="w-5 h-5" />
