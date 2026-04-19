@@ -82,35 +82,35 @@ Users can register for full features (scan history, deep scans, stress testing) 
 ┌──────────────────────────────────────────────────────────────┐
 │                        FRONTEND                              │
 │  React 18 + TypeScript + Vite + Tailwind CSS v4              │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
-│  │ Landing    │  │ Scan Setup │  │ Results    │             │
-│  │ Page       │→ │ (Mode Pick)│→ │ Dashboard  │             │
-│  └────────────┘  └────────────┘  └────────────┘            │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐              │
+│  │ Landing    │  │ Scan Setup │  │ Results    │              │
+│  │ Page       │→ │ (Mode Pick)│→ │ Dashboard  │              │
+│  └────────────┘  └────────────┘  └────────────┘              │
 │         ↕              ↕              ↕                      │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
-│  │ Login /    │  │ Scan       │  │ History    │             │
-│  │ Register   │  │ Progress   │  │ Page       │             │
-│  └────────────┘  └────────────┘  └────────────┘            │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐              │
+│  │ Login /    │  │ Scan       │  │ History    │              │ 
+│  │ Register   │  │ Progress   │  │ Page       │              │
+│  └────────────┘  └────────────┘  └────────────┘              │
 ├──────────────────────────────────────────────────────────────┤
 │                     REST API (Flask)                         │
-│  POST /api/scan  │  POST /api/login  │  GET /api/history    │
+│  POST /api/scan  │  POST /api/login  │  GET /api/history     │
 ├──────────────────────────────────────────────────────────────┤
 │                      BACKEND ENGINE                          │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              AsyncScanEngine                         │    │
-│  │         ThreadPoolExecutor (3-8 workers)             │    │
-│  │  ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐          │    │
-│  │  │ SQLi  │ │  XSS  │ │ CSRF  │ │ Auth  │          │    │
-│  │  └───────┘ └───────┘ └───────┘ └───────┘          │    │
-│  │  ┌───────┐ ┌───────┐ ┌──────────────────┐         │    │
-│  │  │  SSL  │ │Headers│ │  EcomScanner (8) │         │    │
-│  │  └───────┘ └───────┘ └──────────────────┘         │    │
-│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │              AsyncScanEngine                        |     │
+│  │         ThreadPoolExecutor (3-8 workers)            |     │
+│  │  ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐            |     │
+│  │  │ SQLi  │ │  XSS  │ │ CSRF  │ │ Auth  │            |     │
+│  │  └───────┘ └───────┘ └───────┘ └───────┘            │     │
+│  │  ┌───────┐ ┌───────┐ ┌──────────────────┐           │     │
+│  │  │  SSL  │ │Headers│ │  EcomScanner (8) │           │     │
+│  │  └───────┘ └───────┘ └──────────────────┘           │     │
+│  └─────────────────────────────────────────────────────┘     │
 │        ↓                                                     │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │  Scorer  │  │ Gemini AI    │  │   SQLite DB  │          │
-│  │ (0-100)  │  │  Analysis    │  │  (History)   │          │
-│  └──────────┘  └──────────────┘  └──────────────┘          │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐            │
+│  │  Scorer  │  │ Gemini AI    │  │   SQLite DB  │            │
+│  │ (0-100)  │  │  Analysis    │  │  (History)   │            │
+│  └──────────┘  └──────────────┘  └──────────────┘            │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -341,19 +341,6 @@ web_security_scanner/
 
 ---
 
-## 🌐 Deployment
-
-### Frontend → Netlify
-- Auto-deploys on push to `main`
-- Build: `npm run build` → Output: `dist/`
-- SPA routing configured in `netlify.toml`
-
-### Backend → Render
-- Auto-deploys on push to `main`
-- Procfile: `web: gunicorn app:app`
-- Environment variables set in Render dashboard
-
----
 
 ## ⚠️ Security Disclaimer
 
