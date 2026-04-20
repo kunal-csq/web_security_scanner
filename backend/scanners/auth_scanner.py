@@ -17,6 +17,14 @@ SESSION_COOKIE_PATTERNS = [
     "access_token", "refresh_token", "id_token",
 ]
 
+# Known tracking/analytics cookies — NEVER flag these
+TRACKING_COOKIES = {
+    "_ga", "_gid", "_gat", "_fbp", "_fbc", "__cf_bm", "cf_clearance",
+    "__cfduid", "_gcl_au", "NID", "1P_JAR", "CONSENT", "_hjid",
+    "_hjSessionUser", "__gads", "__gpi", "_tt_enable_cookie", "APISID",
+    "HSID", "SSID", "SID", "SAPISID", "__Secure-1PSID", "__Secure-3PSID",
+}
+
 
 class AuthScanner:
     """Authentication and session security scanner."""
@@ -309,7 +317,6 @@ class AuthScanner:
         vulnerabilities = []
 
         try:
-            # First request
             session1 = requests.Session()
             session1.headers.update({
                 "User-Agent": (
@@ -320,7 +327,6 @@ class AuthScanner:
             response1 = session1.get(target_url, timeout=self.timeout, verify=False)
             cookies1 = {c.name: c.value for c in response1.cookies}
 
-            # Second request with new session
             session2 = requests.Session()
             session2.headers.update({
                 "User-Agent": (
@@ -331,20 +337,21 @@ class AuthScanner:
             response2 = session2.get(target_url, timeout=self.timeout, verify=False)
             cookies2 = {c.name: c.value for c in response2.cookies}
 
-            # Check if session cookies are the same
             for name in cookies1:
+                # Skip tracking cookies — they're SUPPOSED to be the same
+                if name in TRACKING_COOKIES:
+                    continue
                 if self._is_session_cookie(name):
                     if name in cookies2 and cookies1[name] == cookies2[name]:
                         vulnerabilities.append({
                             "name": "Session Fixation Risk",
-                            "severity": "High",
+                            "severity": "Medium",
                             "location": target_url,
                             "parameter": f"Cookie: {name}",
                             "description": (
                                 f"Session cookie '{name}' has the same value across "
                                 f"different sessions. This may indicate that session "
-                                f"IDs are not properly rotated, leading to session "
-                                f"fixation attacks."
+                                f"IDs are not properly rotated."
                             ),
                             "impact": (
                                 "An attacker can fix a known session ID and trick "
@@ -431,6 +438,8 @@ class AuthScanner:
         return vulnerabilities
 
     def _is_session_cookie(self, cookie_name):
-        """Check if a cookie name looks like a session cookie."""
+        """Check if a cookie name looks like a session cookie (excludes tracking)."""
+        if cookie_name in TRACKING_COOKIES:
+            return False
         name_lower = cookie_name.lower()
         return any(pattern in name_lower for pattern in SESSION_COOKIE_PATTERNS)

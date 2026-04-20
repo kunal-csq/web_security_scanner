@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import API from '../../config/api';
 import { setToken, setUser } from '../../config/auth';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -13,6 +15,57 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleResponse = useCallback(async (response: any) => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      const res = await fetch(API.googleAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Google sign-up failed');
+        setGoogleLoading(false);
+        return;
+      }
+      setToken(data.token);
+      setUser(data.user);
+      setGoogleLoading(false);
+      navigate('/scan');
+    } catch {
+      setError('Network error. Please try again.');
+      setGoogleLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => {
+      (window as any).google?.accounts?.id?.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
+      const btn = document.getElementById('google-signup-btn');
+      if (btn) {
+        (window as any).google?.accounts?.id?.renderButton(btn, {
+          theme: 'filled_black',
+          size: 'large',
+          width: '100%',
+          text: 'signup_with',
+          shape: 'pill',
+        });
+      }
+    };
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [handleGoogleResponse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +135,26 @@ export function RegisterPage() {
             <div className="mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-[13px] text-red-400">
               {error}
             </div>
+          )}
+
+          {/* Google Sign-Up */}
+          {GOOGLE_CLIENT_ID && (
+            <>
+              <div className="mb-4 flex justify-center">
+                {googleLoading ? (
+                  <div className="w-full py-3.5 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-white/70 text-[14px]">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Signing up with Google...
+                  </div>
+                ) : (
+                  <div id="google-signup-btn" className="w-full flex justify-center" />
+                )}
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-[12px] text-cyber-text-muted uppercase tracking-wider">or</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            </>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -142,13 +142,19 @@ class SQLiScanner:
         return vulnerabilities
 
     def _test_error_based(self, url, method, param_name):
-        """Test for error-based SQL injection."""
+        """Test for error-based SQL injection with dual-baseline to reduce false positives."""
         vulnerabilities = []
 
-        # Get baseline response
+        # Dual baseline: clean value + non-SQL noise value
         baseline = self._make_request(url, method, {param_name: "testvalue123"})
         if not baseline:
             return vulnerabilities
+        noise_baseline = self._make_request(url, method, {param_name: "§§§%%%&&&"})
+
+        # Collect error signatures that already exist in baseline (false positive filter)
+        baseline_lower = baseline.text.lower()
+        noise_lower = noise_baseline.text.lower() if noise_baseline else ""
+        baseline_errors = {sig for sig in SQL_ERROR_SIGNATURES if sig in baseline_lower or sig in noise_lower}
 
         for payload in ERROR_BASED_PAYLOADS:
             try:
@@ -156,11 +162,12 @@ class SQLiScanner:
                 if not response:
                     continue
 
-                # Check for SQL error signatures in response
                 response_lower = response.text.lower()
+
+                # Only flag errors that are NEW (not in baseline or noise)
                 found_errors = [
                     sig for sig in SQL_ERROR_SIGNATURES
-                    if sig in response_lower
+                    if sig in response_lower and sig not in baseline_errors
                 ]
 
                 if found_errors:
@@ -189,35 +196,39 @@ class SQLiScanner:
                             f"SQL errors found: {', '.join(found_errors[:3])}"
                         ),
                     })
-                    break  # One confirmed finding per param is enough
+                    break
 
-                # Check for status code changes indicating injection
+                # Auth bypass: require BOTH status code change AND auth indicators
                 if baseline.status_code != response.status_code:
                     if response.status_code in [200, 302] and baseline.status_code in [401, 403]:
-                        vulnerabilities.append({
-                            "name": "SQL Injection (Authentication Bypass)",
-                            "severity": "Critical",
-                            "location": url,
-                            "parameter": param_name,
-                            "description": (
-                                f"Status code changed from {baseline.status_code} to "
-                                f"{response.status_code} when injecting SQL payload into "
-                                f"'{param_name}', suggesting authentication bypass."
-                            ),
-                            "impact": (
-                                "An attacker can bypass authentication and gain "
-                                "unauthorized access to protected resources."
-                            ),
-                            "recommendation": (
-                                "Use parameterized queries for all authentication logic. "
-                                "Never construct SQL queries using user input directly."
-                            ),
-                            "evidence": (
-                                f"Payload: {payload} | "
-                                f"Status changed: {baseline.status_code} -> {response.status_code}"
-                            ),
-                        })
-                        break
+                        resp_lower = response.text.lower()
+                        auth_indicators = ["welcome", "dashboard", "logout", "my account", "admin"]
+                        if any(ind in resp_lower for ind in auth_indicators):
+                            vulnerabilities.append({
+                                "name": "SQL Injection (Authentication Bypass)",
+                                "severity": "Critical",
+                                "location": url,
+                                "parameter": param_name,
+                                "description": (
+                                    f"Status code changed from {baseline.status_code} to "
+                                    f"{response.status_code} with auth indicators in response "
+                                    f"when injecting SQL payload into '{param_name}'."
+                                ),
+                                "impact": (
+                                    "An attacker can bypass authentication and gain "
+                                    "unauthorized access to protected resources."
+                                ),
+                                "recommendation": (
+                                    "Use parameterized queries for all authentication logic. "
+                                    "Never construct SQL queries using user input directly."
+                                ),
+                                "evidence": (
+                                    f"Payload: {payload} | "
+                                    f"Status changed: {baseline.status_code} -> {response.status_code} | "
+                                    f"Auth indicators found in response"
+                                ),
+                            })
+                            break
 
             except Exception as e:
                 logger.debug(f"Error testing SQLi on {url}: {e}")

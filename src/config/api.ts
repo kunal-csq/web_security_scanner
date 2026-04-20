@@ -13,11 +13,16 @@ export const API = {
   // Auth
   register: `${API_BASE_URL}/api/auth/register`,
   login: `${API_BASE_URL}/api/auth/login`,
+  googleAuth: `${API_BASE_URL}/api/auth/google`,
   me: `${API_BASE_URL}/api/auth/me`,
 
   // History
   history: `${API_BASE_URL}/api/history`,
   historyDetail: (id: number) => `${API_BASE_URL}/api/history/${id}`,
+
+  // Reports
+  reportPdf: `${API_BASE_URL}/api/report/pdf`,
+  reportDocx: `${API_BASE_URL}/api/report/docx`,
 };
 
 export default API;

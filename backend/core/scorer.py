@@ -10,6 +10,7 @@ SEVERITY_WEIGHTS = {
     "high": -20,
     "medium": -10,
     "low": -5,
+    "info": 0,
 }
 
 
@@ -42,7 +43,7 @@ def get_severity_counts(results):
     Returns:
         dict: {critical: n, high: n, medium: n, low: n}
     """
-    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
 
     for r in results:
         severity = r.get("severity", "").lower()

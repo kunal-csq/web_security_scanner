@@ -99,7 +99,7 @@ class CSRFScanner:
                     )
                     vulnerabilities.append({
                         "name": "Missing CSRF Token",
-                        "severity": "High",
+                        "severity": "Medium",
                         "location": endpoint,
                         "parameter": "CSRF Token Field",
                         "description": (
@@ -127,22 +127,28 @@ class CSRFScanner:
         return vulnerabilities
 
     def _check_cookie_samesite(self, cookies, target_url):
-        """Check cookies for insecure SameSite configuration."""
+        """Check cookies for insecure SameSite configuration (session cookies only)."""
         vulnerabilities = []
         checked = set()
 
+        # Skip known tracking/analytics/CDN cookies — not session cookies
+        TRACKING_COOKIES = {
+            "_ga", "_gid", "_gat", "_fbp", "_fbc", "__cf_bm", "cf_clearance",
+            "__cfduid", "_gcl_au", "NID", "1P_JAR", "CONSENT", "_hjid",
+            "_hjSessionUser", "__gads", "__gpi", "_tt_enable_cookie",
+        }
+
         for cookie in cookies:
             cookie_name = cookie.get("name", "")
-            if cookie_name in checked:
+            if cookie_name in checked or cookie_name in TRACKING_COOKIES:
                 continue
             checked.add(cookie_name)
 
             same_site = cookie.get("sameSite", "").lower()
 
-            if same_site == "none" or same_site == "" or same_site == "none":
+            if same_site == "none" or same_site == "":
                 secure = cookie.get("secure", False)
-
-                severity = "High" if not secure else "Medium"
+                severity = "Medium" if not secure else "Low"
 
                 vulnerabilities.append({
                     "name": "Insecure Cookie SameSite Configuration",
@@ -178,10 +184,8 @@ class CSRFScanner:
         vulnerabilities = []
 
         try:
-            # Make a request and check response headers
             response = self.session.get(target_url, timeout=self.timeout, verify=False)
 
-            # Check if any CSRF-related headers are present
             response_headers_lower = {k.lower(): v for k, v in response.headers.items()}
 
             has_csrf_header = any(
@@ -189,21 +193,32 @@ class CSRFScanner:
                 for header in CSRF_HEADER_NAMES
             )
 
-            # Check meta tags for CSRF token
-            if "csrf" not in response.text.lower() and "xsrf" not in response.text.lower():
-                if not has_csrf_header:
+            # SPAs using Authorization header are inherently CSRF-proof
+            # Check if site appears to be a modern SPA (React/Vue/Angular)
+            body_lower = response.text.lower()
+            is_spa = (
+                'id="root"' in body_lower
+                or 'id="app"' in body_lower
+                or 'id="__next"' in body_lower
+                or 'ng-app' in body_lower
+            )
+
+            if "csrf" not in body_lower and "xsrf" not in body_lower:
+                if not has_csrf_header and not is_spa:
                     vulnerabilities.append({
                         "name": "No CSRF Protection Detected",
-                        "severity": "Medium",
+                        "severity": "Low",
                         "location": target_url,
                         "parameter": "Application-wide",
                         "description": (
                             "No CSRF protection mechanism detected in the application. "
-                            "No CSRF tokens found in page source or response headers."
+                            "No CSRF tokens found in page source or response headers. "
+                            "Note: SPAs using Authorization headers are inherently CSRF-safe."
                         ),
                         "impact": (
-                            "The entire application may be vulnerable to Cross-Site "
-                            "Request Forgery attacks on all state-changing operations."
+                            "The application may be vulnerable to Cross-Site "
+                            "Request Forgery attacks on state-changing operations "
+                            "if cookie-based authentication is used."
                         ),
                         "recommendation": (
                             "Implement application-wide CSRF protection using a security "

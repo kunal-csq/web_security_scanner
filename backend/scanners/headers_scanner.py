@@ -32,7 +32,7 @@ def check_headers(url):
         if "Content-Security-Policy" not in headers:
             vulnerabilities.append({
                 "name": "Missing Content Security Policy",
-                "severity": "High",
+                "severity": "Medium",
                 "location": url,
                 "parameter": "Content-Security-Policy",
                 "description": (
@@ -123,7 +123,7 @@ def check_headers(url):
         if "X-Frame-Options" not in headers:
             vulnerabilities.append({
                 "name": "Missing X-Frame-Options",
-                "severity": "Medium",
+                "severity": "Low",
                 "location": url,
                 "parameter": "X-Frame-Options",
                 "description": (
@@ -173,7 +173,7 @@ def check_headers(url):
         if "Referrer-Policy" not in headers:
             vulnerabilities.append({
                 "name": "Missing Referrer-Policy",
-                "severity": "Low",
+                "severity": "Info",
                 "location": url,
                 "parameter": "Referrer-Policy",
                 "description": (
@@ -198,7 +198,7 @@ def check_headers(url):
         if "Permissions-Policy" not in headers and "Feature-Policy" not in headers:
             vulnerabilities.append({
                 "name": "Missing Permissions-Policy",
-                "severity": "Low",
+                "severity": "Info",
                 "location": url,
                 "parameter": "Permissions-Policy",
                 "description": (

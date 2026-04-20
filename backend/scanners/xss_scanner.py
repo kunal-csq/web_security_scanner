@@ -102,8 +102,12 @@ class XSSScanner:
         return vulnerabilities
 
     def _test_reflected_xss(self, url, method, param_name):
-        """Test for reflected XSS by checking if payload appears in response."""
+        """Test for reflected XSS with baseline comparison to reduce false positives."""
         vulnerabilities = []
+
+        # Get baseline response to filter out content that already exists on page
+        baseline = self._make_request(url, method, {param_name: "safetest123"})
+        baseline_text = baseline.text if baseline else ""
 
         for payload in REFLECTED_PAYLOADS:
             try:
@@ -113,8 +117,8 @@ class XSSScanner:
 
                 response_text = response.text
 
-                # Check if payload is reflected unescaped
-                if payload in response_text:
+                # Check if payload is reflected unescaped AND not in baseline
+                if payload in response_text and payload not in baseline_text:
                     xss_type = self._classify_xss(response_text, payload)
                     context = self._detect_context(response_text, payload)
 
@@ -147,32 +151,7 @@ class XSSScanner:
                     })
                     break  # One confirmed per param is enough
 
-                # Check if payload is partially reflected (encoded but exploitable)
-                elif self._check_partial_reflection(response_text, payload):
-                    vulnerabilities.append({
-                        "name": "Cross-Site Scripting (Potential Reflected)",
-                        "severity": "Medium",
-                        "location": url,
-                        "parameter": param_name,
-                        "description": (
-                            f"Partial XSS reflection detected in parameter '{param_name}'. "
-                            f"The input is partially reflected in the response, and encoding "
-                            f"may be insufficient to prevent exploitation."
-                        ),
-                        "impact": (
-                            "Depending on the output context, an attacker may be able "
-                            "to bypass encoding and execute JavaScript."
-                        ),
-                        "recommendation": (
-                            "Apply strict context-aware output encoding. Use a Content-Security-Policy "
-                            "header with script-src directive."
-                        ),
-                        "evidence": (
-                            f"Payload: {payload} | "
-                            f"Partial reflection detected in response"
-                        ),
-                    })
-                    break
+                # Partial reflection REMOVED — too many false positives
 
             except Exception as e:
                 logger.debug(f"Error testing XSS on {url}: {e}")

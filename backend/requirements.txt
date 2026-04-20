@@ -7,3 +7,9 @@ beautifulsoup4
 lxml
 google-generativeai
 PyJWT
+psycopg2-binary
+google-auth
+reportlab
+python-docx
+gunicorn
+werkzeug

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowLeft, Globe, ShieldCheck, AlertTriangle, ShieldAlert, Info, Clock, Activity, Zap } from 'lucide-react';
+import { Sparkles, ArrowLeft, Globe, ShieldCheck, AlertTriangle, ShieldAlert, Info, Clock, Activity, Zap, FileText, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { VulnerabilityCard } from '../components/VulnerabilityCard';
 import { VulnerabilityChart } from '../components/VulnerabilityChart';
+import API from '../../config/api';
 
 // -----------------------------------------------
 // EVIDENCE NORMALIZATION UTILITY
@@ -59,6 +60,7 @@ export function ScanResults() {
   const navigate = useNavigate();
   const [expandedVuln, setExpandedVuln] = useState<number | null>(null);
   const [data, setData] = useState<ScanResponse | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('scanResults');
@@ -137,6 +139,66 @@ export function ScanResults() {
           >
             <ArrowLeft className="w-4 h-4" /> New Scan
           </motion.button>
+
+          {/* Export Buttons */}
+          <div className="flex gap-2 mb-6">
+            <motion.button
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+              disabled={exporting !== null}
+              onClick={async () => {
+                setExporting('pdf');
+                try {
+                  const res = await fetch(API.reportPdf, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `websec_report_${Date.now()}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }
+                } catch (e) { console.error('PDF export failed', e); }
+                setExporting(null);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-cyber-surface border border-cyber-border rounded-xl text-[13px] text-cyber-text-dim hover:text-white hover:border-cyber-purple/40 transition-all disabled:opacity-50"
+            >
+              <FileText className="w-4 h-4" />
+              {exporting === 'pdf' ? 'Generating...' : 'Export PDF'}
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}
+              disabled={exporting !== null}
+              onClick={async () => {
+                setExporting('docx');
+                try {
+                  const res = await fetch(API.reportDocx, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `websec_report_${Date.now()}.docx`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }
+                } catch (e) { console.error('DOCX export failed', e); }
+                setExporting(null);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-cyber-surface border border-cyber-border rounded-xl text-[13px] text-cyber-text-dim hover:text-white hover:border-cyber-purple/40 transition-all disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              {exporting === 'docx' ? 'Generating...' : 'Export DOCX'}
+            </motion.button>
+          </div>
 
           {/* ============================================ */}
           {/* SCORE + STATS + PIE */}

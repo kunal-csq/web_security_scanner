@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from api.scan_routes import scan_bp
 from api.auth_routes import auth_bp
 from api.history_routes import history_bp
+from api.report_routes import report_bp
 from db import init_db
 
 load_dotenv()
@@ -27,11 +28,12 @@ init_db()
 app.register_blueprint(scan_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(history_bp)
+app.register_blueprint(report_bp)
 
 
 @app.route("/")
 def home():
-    return "WebGuard DAST Engine v2.2 Running"
+    return "WebSec AI DAST Engine v3.0 Running"
 
 
 if __name__ == "__main__":

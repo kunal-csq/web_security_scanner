@@ -13,36 +13,57 @@ from core.scorer import calculate_score, get_severity_counts, get_grade
 from ai.analysis import generate_ai_analysis
 from scanners.stress_scanner import StressScanner
 from api.auth_routes import get_optional_user
-from db import get_db
+from db import get_db, USE_POSTGRES
 
 logger = logging.getLogger(__name__)
 
 scan_bp = Blueprint("scan", __name__, url_prefix="/api")
 
 
-def _save_scan_history(user_id, url, depth, response_data):
+def _save_scan_history(user_id, url, depth, response_data, scan_mode="general"):
     """Save scan results to history for authenticated users."""
     try:
         db = get_db()
-        db.execute(
-            """INSERT INTO scan_history
-               (user_id, url, score, grade, severity_counts, results,
-                ai_analysis, crawl_info, timing, scan_log, depth)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                user_id,
-                url,
-                response_data.get("score", 0),
-                response_data.get("grade", "F"),
-                json.dumps(response_data.get("severity_counts", {})),
-                json.dumps(response_data.get("results", [])),
-                json.dumps(response_data.get("ai_analysis", {})),
-                json.dumps(response_data.get("crawl_info", {})),
-                json.dumps(response_data.get("timing", {})),
-                json.dumps(response_data.get("scan_log", [])),
-                depth,
-            ),
-        )
+        if USE_POSTGRES:
+            import psycopg2.extras
+            cursor = db.cursor()
+            cursor.execute(
+                """INSERT INTO scan_history
+                   (user_id, url, scan_mode, score, grade, severity_counts, results,
+                    ai_analysis, crawl_info, timing, scan_log, depth)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (
+                    user_id, url, scan_mode,
+                    response_data.get("score", 0),
+                    response_data.get("grade", "F"),
+                    json.dumps(response_data.get("severity_counts", {})),
+                    json.dumps(response_data.get("results", [])),
+                    json.dumps(response_data.get("ai_analysis", {})),
+                    json.dumps(response_data.get("crawl_info", {})),
+                    json.dumps(response_data.get("timing", {})),
+                    json.dumps(response_data.get("scan_log", [])),
+                    depth,
+                ),
+            )
+        else:
+            db.execute(
+                """INSERT INTO scan_history
+                   (user_id, url, scan_mode, score, grade, severity_counts, results,
+                    ai_analysis, crawl_info, timing, scan_log, depth)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    user_id, url, scan_mode,
+                    response_data.get("score", 0),
+                    response_data.get("grade", "F"),
+                    json.dumps(response_data.get("severity_counts", {})),
+                    json.dumps(response_data.get("results", [])),
+                    json.dumps(response_data.get("ai_analysis", {})),
+                    json.dumps(response_data.get("crawl_info", {})),
+                    json.dumps(response_data.get("timing", {})),
+                    json.dumps(response_data.get("scan_log", [])),
+                    depth,
+                ),
+            )
         db.commit()
         db.close()
         logger.info(f"Scan saved to history for user {user_id}")
@@ -147,7 +168,7 @@ def run_scan():
         # Save to history (authenticated only)
         # ----------------------------------------
         if is_authenticated:
-            _save_scan_history(user["user_id"], url, depth, response)
+            _save_scan_history(user["user_id"], url, depth, response, scan_mode)
 
         return jsonify(response)
 
@@ -208,10 +229,10 @@ def run_stress_test():
 def health_check():
     return jsonify({
         "status": "healthy",
-        "service": "WebGuard DAST Engine",
-        "version": "2.2.0",
-        "features": ["auth", "history", "access_control"],
-        "scanners": ["sqli", "xss", "csrf", "auth", "ssl", "headers", "stress_test"],
+        "service": "WebSec AI DAST Engine",
+        "version": "3.0.0",
+        "features": ["auth", "history", "google_oauth", "pdf_export", "docx_export"],
+        "scanners": ["sqli", "xss", "csrf", "auth", "ssl", "headers", "ecommerce", "stress_test"],
     })
 
 
