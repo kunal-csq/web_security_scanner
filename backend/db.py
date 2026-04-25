@@ -22,7 +22,7 @@ def get_db():
         import psycopg2.extras
         # Render provides postgres:// but psycopg2 needs postgresql://
         db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-        conn = psycopg2.connect(db_url)
+        conn = psycopg2.connect(db_url, connect_timeout=5)
         conn.autocommit = False
         return conn
     else:
@@ -100,86 +100,90 @@ def execute_query(query, params=None, fetch_one=False, fetch_all=False):
 
 def init_db():
     """Create tables if they don't exist."""
-    conn = get_db()
-    cursor = conn.cursor()
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
 
-    if USE_POSTGRES:
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                email TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                password_hash TEXT,
-                auth_provider TEXT DEFAULT 'local',
-                google_id TEXT,
-                avatar_url TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        if USE_POSTGRES:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    password_hash TEXT,
+                    auth_provider TEXT DEFAULT 'local',
+                    google_id TEXT,
+                    avatar_url TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS scan_history (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                url TEXT NOT NULL,
-                scan_mode TEXT DEFAULT 'general',
-                score INTEGER DEFAULT 0,
-                grade TEXT DEFAULT 'F',
-                severity_counts JSONB DEFAULT '{}',
-                results JSONB DEFAULT '[]',
-                ai_analysis JSONB DEFAULT '{}',
-                crawl_info JSONB DEFAULT '{}',
-                timing JSONB DEFAULT '{}',
-                scan_log JSONB DEFAULT '[]',
-                depth TEXT DEFAULT 'standard',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS scan_history (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    url TEXT NOT NULL,
+                    scan_mode TEXT DEFAULT 'general',
+                    score INTEGER DEFAULT 0,
+                    grade TEXT DEFAULT 'F',
+                    severity_counts JSONB DEFAULT '{}',
+                    results JSONB DEFAULT '[]',
+                    ai_analysis JSONB DEFAULT '{}',
+                    crawl_info JSONB DEFAULT '{}',
+                    timing JSONB DEFAULT '{}',
+                    scan_log JSONB DEFAULT '[]',
+                    depth TEXT DEFAULT 'standard',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_scan_history_user
-            ON scan_history(user_id, created_at DESC)
-        """)
-    else:
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                password_hash TEXT,
-                auth_provider TEXT DEFAULT 'local',
-                google_id TEXT,
-                avatar_url TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_scan_history_user
+                ON scan_history(user_id, created_at DESC)
+            """)
+        else:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    password_hash TEXT,
+                    auth_provider TEXT DEFAULT 'local',
+                    google_id TEXT,
+                    avatar_url TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS scan_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                url TEXT NOT NULL,
-                scan_mode TEXT DEFAULT 'general',
-                score INTEGER DEFAULT 0,
-                grade TEXT DEFAULT 'F',
-                severity_counts TEXT DEFAULT '{}',
-                results TEXT DEFAULT '[]',
-                ai_analysis TEXT DEFAULT '{}',
-                crawl_info TEXT DEFAULT '{}',
-                timing TEXT DEFAULT '{}',
-                scan_log TEXT DEFAULT '[]',
-                depth TEXT DEFAULT 'standard',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS scan_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    url TEXT NOT NULL,
+                    scan_mode TEXT DEFAULT 'general',
+                    score INTEGER DEFAULT 0,
+                    grade TEXT DEFAULT 'F',
+                    severity_counts TEXT DEFAULT '{}',
+                    results TEXT DEFAULT '[]',
+                    ai_analysis TEXT DEFAULT '{}',
+                    crawl_info TEXT DEFAULT '{}',
+                    timing TEXT DEFAULT '{}',
+                    scan_log TEXT DEFAULT '[]',
+                    depth TEXT DEFAULT 'standard',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
 
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_scan_history_user
-            ON scan_history(user_id, created_at DESC)
-        """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_scan_history_user
+                ON scan_history(user_id, created_at DESC)
+            """)
 
-    conn.commit()
-    conn.close()
-    db_type = "PostgreSQL" if USE_POSTGRES else "SQLite"
-    logger.info(f"Database initialized ({db_type})")
+        conn.commit()
+        conn.close()
+        db_type = "PostgreSQL" if USE_POSTGRES else "SQLite"
+        logger.info(f"Database initialized ({db_type})")
+    except Exception as e:
+        logger.error(f"Database init failed (will retry on first request): {e}")
+
