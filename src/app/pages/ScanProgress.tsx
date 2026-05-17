@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Loader2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react';
+import { CheckCircle2, Loader2, Circle, ShieldAlert, Terminal, Sparkles, Home } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API from '../../config/api';
 import { authHeader } from '../../config/auth';
@@ -431,14 +431,21 @@ export function ScanProgress() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Cancel (hidden when complete) */}
+            {/* Cancel + Home (hidden when complete) */}
             {!scanComplete && (
-              <div className="flex justify-center">
+              <div className="flex justify-center items-center gap-6">
                 <button
                   onClick={handleCancel}
                   className="text-[12px] text-cyber-text-muted hover:text-cyber-danger transition-colors duration-200"
                 >
                   Cancel Scan
+                </button>
+                <span className="text-cyber-border text-[12px]">|</span>
+                <button
+                  onClick={() => { cancelledRef.current = true; abortControllerRef.current?.abort(); navigate('/'); }}
+                  className="flex items-center gap-1.5 text-[12px] text-cyber-text-muted hover:text-cyber-neon transition-colors duration-200"
+                >
+                  <Home className="w-3.5 h-3.5" /> Home
                 </button>
               </div>
             )}

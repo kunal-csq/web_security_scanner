@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowLeft, Globe, ShieldCheck, AlertTriangle, ShieldAlert, Info, Clock, Activity, Zap, FileText, Download } from 'lucide-react';
+import { Sparkles, ArrowLeft, Globe, ShieldCheck, AlertTriangle, ShieldAlert, Info, Clock, Activity, Zap, FileText, Download, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { VulnerabilityCard } from '../components/VulnerabilityCard';
 import { VulnerabilityChart } from '../components/VulnerabilityChart';
@@ -131,14 +131,23 @@ export function ScanResults() {
       <div className="relative z-10 py-8 px-6">
         <div className="max-w-[1280px] mx-auto">
 
-          {/* Back button */}
-          <motion.button
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-            onClick={() => navigate('/scan')}
-            className="flex items-center gap-2 text-[13px] text-cyber-text-muted hover:text-cyber-purple transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" /> New Scan
-          </motion.button>
+          {/* Top navigation buttons */}
+          <div className="flex items-center gap-4 mb-6">
+            <motion.button
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              onClick={() => navigate('/scan')}
+              className="flex items-center gap-2 text-[13px] text-cyber-text-muted hover:text-cyber-purple transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> New Scan
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-[13px] text-cyber-text-muted hover:text-cyber-neon transition-colors"
+            >
+              <Home className="w-4 h-4" /> Home
+            </motion.button>
+          </div>
 
           {/* Export Buttons */}
           <div className="flex gap-2 mb-6">
@@ -447,10 +456,14 @@ export function ScanResults() {
             </div>
           </div>
 
-          {/* Scan Again */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex justify-center mt-10 mb-6">
+          {/* Bottom Actions */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex justify-center gap-4 mt-10 mb-6">
+            <button onClick={() => navigate('/')}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-cyber-surface border border-cyber-border text-cyber-text-dim hover:text-white hover:border-cyber-neon/40 font-semibold transition-all duration-300">
+              <Home className="w-4 h-4" /> Home
+            </button>
             <button onClick={() => navigate('/scan')}
-              className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyber-purple to-cyber-neon text-white font-semibold shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_50px_rgba(139,92,246,0.5)] transition-all duration-300">
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyber-purple to-cyber-neon text-white font-semibold shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_50px_rgba(139,92,246,0.5)] transition-all duration-300">
               Start New Scan
             </button>
           </motion.div>
